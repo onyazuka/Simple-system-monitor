@@ -5,13 +5,8 @@ Simple system monitor for Linux with GUI written in C++ + Qt
 	<li>qmake</li>
 	<li>make</li>
 </ol>
-<h2>Features</h2>
-<ul>
-	<li>CPU info and usage charts</li>
-	<li>Memory info and usage charts</li>
-	<li>Network info and usage charts</li>
-	<li>Languages: English, Russian</li>
-</ul>
 <h2>Screenshots</h2>
-<img src=images/total.png />
+<img src=images/screen1.png />
 <img src=images/cpu.png />
+<img src=images/screen2.png />
+<img src=images/screen3.png />
