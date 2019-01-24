@@ -1,16 +1,21 @@
 #include "cpuwidget.hpp"
 
-CPUWidget::CPUWidget(CPUInfo* _cpuinfo, QWidget *parent)
-    : EmulateableWidget{parent}, cpuInfo{_cpuinfo}
+CPUWidget::CPUWidget(InfoManager::pointer _infoManager, QWidget *parent)
+    : QWidget{parent}, infoManager{_infoManager}
 {
-    //setUpdateInterval(100);
-    // creating
+    createWidgets();
+    createLayout();
+    createUpdaterFunctions();
+}
+
+void CPUWidget::createWidgets()
+{
     totalCPULabel = new QLabel(tr("Total"));
     totalCPUChart = new CPUChart(1);
     cpuLabels.push_back(totalCPULabel);
     cpuCharts.push_back(totalCPUChart);
 
-    int cpuCount = (cpuInfo == nullptr) ? 1 : cpuInfo->cpuInfoCount();
+    int cpuCount = infoManager->cpuCount();
 
     // 1 because we have already created total chart
     for(int i = 1; i < cpuCount; ++i)
@@ -25,8 +30,10 @@ CPUWidget::CPUWidget(CPUInfo* _cpuinfo, QWidget *parent)
     {
         cpuLabels[i]->setObjectName(chartDescriptionName);
     }
+}
 
-    // layouting
+void CPUWidget::createLayout()
+{
     QGridLayout* mainLayout = new QGridLayout;
     QVBoxLayout* vbl = new QVBoxLayout;
     vbl->addWidget(cpuLabels[0], 0, Qt::AlignCenter);
@@ -55,15 +62,40 @@ CPUWidget::CPUWidget(CPUInfo* _cpuinfo, QWidget *parent)
     }
 
     setLayout(mainLayout);
+}
 
-    // providing updaters
+/*
+    functions for updating CHARTS
+*/
+void CPUWidget::createUpdaterFunctions()
+{
     for(int i = 0; i < cpuCharts.size(); ++i)
     {
-        ChartUpdater upd(cpuInfo, i, i == 0 ? true : false);
+        ChartUpdater upd(infoManager, i);
         chartUpdaters.push_back(upd);
         cpuCharts[i]->setUpdaterFunction<ChartUpdater>(upd);
     }
+}
 
+// not have data precision
+void CPUWidget::setDataPrecision(int){ }
+
+void CPUWidget::setChartGridEnabled(bool on)
+{
+    for(int i = 0; i < getCpuChartsCount(); ++i)
+    {
+        getCpuChart(i).setEnableGrid(on);
+    }
+    update();
+}
+
+void CPUWidget::setChartMode(Modes mode)
+{
+    for(int i = 0; i < getCpuChartsCount(); ++i)
+    {
+        getCpuChart(i).setMode(mode);
+    }
+    update();
 }
 
 void CPUWidget::stopCharts()

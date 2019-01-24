@@ -1,30 +1,30 @@
 #include "systemmonitor.hpp"
 
-TotalWidget::TotalWidget(CPUInfo* _cpuInfo, MemInfo* _meminfo, NetInfo* _netInfo, QWidget *parent)
-    :  EmulateableWidget{parent}, cpuinfo{_cpuInfo}, meminfo{_meminfo},
-      netInfo{_netInfo},dataPrecision{2}
+TotalWidget::TotalWidget(InfoManager::pointer _infoManager, QWidget *parent)
+    :  EmulateableWidget{parent}, infoManager{_infoManager},dataPrecision{2}
 {
-
     setUpdateInterval(500);
-    coreCount = (cpuinfo == nullptr) ? 1 : cpuinfo->cpuInfoCount() - 1;
+    createWidgets();
+    createLayout();
+}
+
+void TotalWidget::createWidgets()
+{
+    coreCount = (!infoManager->isCpuInfoInitialized()) ? 0 : infoManager->cpuCount() - 1;
 
     memoryLabel =           new QLabel(tr("Memory"));
     memoryTotalLabel =      new QLabel(tr("Total: "));
     memoryTotalInfoLabel =  new QLabel;
-    memoryAvailLabel =      new QLabel(tr("Available: "));
-    memoryAvailInfoLabel =  new QLabel;
-    memoryAvailPB =         new QProgressBar;
-    memoryUsageLabel =      new QLabel(tr("Usage: "));
-    memoryUsageInfoLabel =  new QLabel;
-    memoryUsagePB =         new QProgressBar;
-    memoryUsagePB->setTextVisible(false);
+    memoryAvailPieChart =   new LabeledPiechart(LabeledPiechart::Direction::Right);
+    memoryAvailPieChart->getPieChart()->setFixedSize(100,100);
+    memoryAvailPieChart->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     swapLabel =             new QLabel(tr("Swap"));
     swapTotalLabel =        new QLabel(tr("Total: "));
     swapTotalInfoLabel =    new QLabel;
-    swapAvailLabel =        new QLabel(tr("Available: "));
-    swapAvailInfoLabel =    new QLabel;
-    swapAvailPB =           new QProgressBar;
+    swapAvailPieChart =     new LabeledPiechart(LabeledPiechart::Direction::Right);
+    swapAvailPieChart->getPieChart()->setFixedSize(100,100);
+    swapAvailPieChart->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     cpuLabel =              new QLabel(tr("CPU"));
     cpuTotalLabel =         new QLabel(tr("Total: "));
@@ -36,96 +36,173 @@ TotalWidget::TotalWidget(CPUInfo* _cpuInfo, MemInfo* _meminfo, NetInfo* _netInfo
     networkOutcomeLabel =   new QLabel(tr("Outgoing: "));
     networkOutcomeInfoLabel=new QLabel;
 
+    hddLabel =              new QLabel(tr("HDD"));
+    hddReadLabel =          new QLabel(tr("Read: "));
+    hddReadInfoLabel =      new QLabel;
+    hddWriteLabel =         new QLabel(tr("Write: "));
+    hddWriteInfoLabel =     new QLabel;
+
     // object names used in css
     memoryLabel->setObjectName(titleLabelsName);
     swapLabel->setObjectName(titleLabelsName);
     cpuLabel->setObjectName(titleLabelsName);
     networkLabel->setObjectName(titleLabelsName);
     memoryTotalLabel->setObjectName(propertyLabelsName);
-    memoryAvailLabel->setObjectName(propertyLabelsName);
-    memoryUsageLabel->setObjectName(propertyLabelsName);
     swapTotalLabel->setObjectName(propertyLabelsName);
-    swapAvailLabel->setObjectName(propertyLabelsName);
     cpuTotalLabel->setObjectName(propertyLabelsName);
     networkIncomeLabel->setObjectName(propertyLabelsName);
     networkOutcomeLabel->setObjectName(propertyLabelsName);
     memoryTotalInfoLabel->setObjectName(infoLabelsName);
-    memoryAvailInfoLabel->setObjectName(infoLabelsName);
-    memoryUsageInfoLabel->setObjectName(infoLabelsName);
     swapTotalInfoLabel->setObjectName(infoLabelsName);
-    swapAvailInfoLabel->setObjectName(infoLabelsName);
     cpuTotalInfoLabel->setObjectName(infoLabelsName);
     networkIncomeInfoLabel->setObjectName(infoLabelsName);
     networkOutcomeInfoLabel->setObjectName(infoLabelsName);
+    hddLabel->setObjectName(titleLabelsName);
+    hddReadLabel->setObjectName(propertyLabelsName);
+    hddWriteLabel->setObjectName(propertyLabelsName);
+    hddReadInfoLabel->setObjectName(infoLabelsName);
+    hddWriteInfoLabel->setObjectName(infoLabelsName);
 
-    QFrame* memorySplitter = new QFrame;
+    memorySplitter = new QFrame;
     memorySplitter->setFrameShape(QFrame::HLine);
     memorySplitter->setFrameShadow(QFrame::Sunken);
-    QFrame* swapSplitter = new QFrame;
+    swapSplitter = new QFrame;
     swapSplitter->setFrameShape(QFrame::HLine);
     swapSplitter->setFrameShadow(QFrame::Sunken);
-    QFrame* cpuSplitter = new QFrame;
+    cpuSplitter = new QFrame;
     cpuSplitter->setFrameShape(QFrame::HLine);
     cpuSplitter->setFrameShadow(QFrame::Sunken);
+    netSplitter = new QFrame;
+    netSplitter->setFrameShape(QFrame::HLine);
+    netSplitter->setFrameShadow(QFrame::Sunken);
 
-    QGridLayout* mainLayout = new QGridLayout;
-    mainLayout->addWidget(memoryLabel, 0, 0, 1, 4, Qt::AlignCenter);
-    mainLayout->addWidget(memoryTotalLabel, 1, 0, 1, 1);
-    mainLayout->addWidget(memoryTotalInfoLabel, 1, 1, 1, 1);
-    mainLayout->addWidget(memoryAvailLabel, 2, 0, 1, 1);
-    mainLayout->addWidget(memoryAvailInfoLabel, 2, 1, 1, 1);
-    mainLayout->addWidget(memoryAvailPB, 2, 2, 1, 2);
-    mainLayout->addWidget(memoryUsageLabel, 3, 0, 1, 1);
-    mainLayout->addWidget(memoryUsageInfoLabel, 3, 1, 1, 1);
-    mainLayout->addWidget(memoryUsagePB, 3, 2, 1, 2);
-    mainLayout->addWidget(memorySplitter, 4, 0, 1, 4);
-    mainLayout->addWidget(swapLabel, 5, 0, 1, 4, Qt::AlignCenter);
-    mainLayout->addWidget(swapTotalLabel, 6, 0, 1, 1);
-    mainLayout->addWidget(swapTotalInfoLabel, 6, 1, 1, 1);
-    mainLayout->addWidget(swapAvailLabel, 7, 0, 1, 1);
-    mainLayout->addWidget(swapAvailInfoLabel, 7, 1, 1, 1);
-    mainLayout->addWidget(swapAvailPB, 7, 2, 1, 2);
-    mainLayout->addWidget(swapSplitter, 8, 0, 1, 4);
-    mainLayout->addWidget(cpuLabel, 9, 0, 1, 4, Qt::AlignCenter);
-    mainLayout->addWidget(cpuTotalLabel, 10, 0, 1, 1);
-    mainLayout->addWidget(cpuTotalInfoLabel, 10, 1, 1, 1);
-
-    int curRow = 11;
-    // adding core labels
     for(int i = 0; i < coreCount; ++i)
     {
         QString description = QString(tr("Core ")) + QString::number(i + 1) + QString(": ");
         coreLabels.push_back(CoreLabelsPair(new QLabel(description), new QLabel));
-        corePBs.push_back(new QProgressBar);
+        QProgressBar* newPB = new QProgressBar;
+        newPB->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        newPB->setOrientation(Qt::Vertical);
+        corePBs.push_back(newPB);
         corePBs[corePBs.size() - 1]->setTextVisible(false);
         coreLabels.back().first->setObjectName(propertyLabelsName);
         coreLabels.back().second->setObjectName(infoLabelsName);
-        mainLayout->addWidget(coreLabels.back().first, curRow, 0, 1, 1);
-        mainLayout->addWidget(coreLabels.back().second, curRow, 1, 1, 1);
-        mainLayout->addWidget(corePBs.back(), curRow, 2, 1, 2);
-        ++curRow;
-    }
-
-    mainLayout->addWidget(cpuSplitter, curRow++, 0, 1, 4);
-    mainLayout->addWidget(networkLabel, curRow++, 0, 1, 4, Qt::AlignCenter);
-    mainLayout->addWidget(networkIncomeLabel, curRow, 0, 1, 1);
-    mainLayout->addWidget(networkIncomeInfoLabel, curRow++, 1, 1, 1);
-    mainLayout->addWidget(networkOutcomeLabel, curRow, 0, 1, 1);
-    mainLayout->addWidget(networkOutcomeInfoLabel, curRow++, 1, 1, 1);
-
-    setLayout(mainLayout);
-
-    // configuring progress bars
-    for(auto child : children())
-    {
-        QProgressBar* pb = qobject_cast<QProgressBar*>(child);
-        if(pb == 0)
-        {
-            continue;
-        }
-        pb->setRange(0, 100);
     }
 }
+
+void TotalWidget::createLayout()
+{
+    QGridLayout* mainLayout = new QGridLayout;
+    int row = 0;
+    QVBoxLayout* memoryTotalSublayout = new QVBoxLayout;
+    QVBoxLayout* swapTotalSublayout = new QVBoxLayout;
+
+    memoryTotalSublayout->addWidget(memoryTotalLabel);
+    memoryTotalSublayout->addWidget(memoryTotalInfoLabel);
+    swapTotalSublayout->addWidget(swapTotalLabel);
+    swapTotalSublayout->addWidget(swapTotalInfoLabel);
+
+    mainLayout->addWidget(memoryLabel, row++, 0, 1, 1);
+    mainLayout->addLayout(memoryTotalSublayout, row, 0, 1, 1, Qt::AlignTop);
+    mainLayout->addWidget(memoryAvailPieChart, row++, 1, 1, 1);
+    mainLayout->addWidget(memorySplitter, row++, 0, 1, 4);
+    mainLayout->addWidget(swapLabel, row++, 0, 1, 1);
+    mainLayout->addLayout(swapTotalSublayout, row, 0, 1, 1, Qt::AlignTop);
+    mainLayout->addWidget(swapAvailPieChart, row++, 1, 1, 1);
+    mainLayout->addWidget(swapSplitter, row++, 0, 1, 4);
+
+    mainLayout->addWidget(cpuLabel, row++, 0, 1, 1);
+
+    QHBoxLayout* coresSublayout = new QHBoxLayout;
+    // adding core labels
+    for(int i = 0; i < coreCount; ++i)
+    {
+        QVBoxLayout* coresSubSublayout = new QVBoxLayout;
+        coresSubSublayout->addWidget(coreLabels[i].first, 1);
+        coresSubSublayout->addWidget(corePBs[i], 5);
+        coresSubSublayout->addWidget(coreLabels[i].second, 1);
+        coresSublayout->addLayout(coresSubSublayout, Qt::AlignCenter);
+        if((i % 8 == 7) && (i != coreCount - 1))
+        {
+            mainLayout->addLayout(coresSublayout, row++, 0, 1, 4);
+            QFrame* tempSplitter = new QFrame();
+            tempSplitter->setFrameShape(QFrame::HLine);
+            tempSplitter->setFrameShadow(QFrame::Sunken);
+            mainLayout->addWidget(tempSplitter, row++, 1, 1, 2);
+            coresSublayout = new QHBoxLayout();
+        }
+        else if(i == (coreCount - 1))
+        {
+            mainLayout->addLayout(coresSublayout, row, 0, 1, 4);
+            ++row;
+        }
+    }
+    mainLayout->addWidget(cpuSplitter, row++, 0, 1, 4);
+    mainLayout->addWidget(networkLabel, row++, 0, 1, 4);
+    mainLayout->addWidget(networkIncomeLabel, row, 0, 1, 1);
+    mainLayout->addWidget(networkIncomeInfoLabel, row++, 1, 1, 1);
+    mainLayout->addWidget(networkOutcomeLabel, row, 0, 1, 1);
+    mainLayout->addWidget(networkOutcomeInfoLabel, row++, 1, 1, 1);
+    mainLayout->addWidget(netSplitter, row++, 0, 1, 4);
+    mainLayout->addWidget(hddLabel, row++, 0, 1, 1);
+    mainLayout->addWidget(hddReadLabel, row, 0, 1, 1);
+    mainLayout->addWidget(hddReadInfoLabel, row++, 1, 1, 1);
+    mainLayout->addWidget(hddWriteLabel, row, 0, 1, 1);
+    mainLayout->addWidget(hddWriteInfoLabel, row++, 1, 1, 1);
+
+    setLayout(mainLayout);
+}
+
+void TotalWidget::updateCpuLabels()
+{
+    cpuTotalInfoLabel->setText(QString::number(infoManager->getLoad(0), 'd', dataPrecision) + "%");
+    for(int i = 0; i < coreCount; ++i)
+    {
+        float usage = infoManager->getLoad(i + 1);
+        coreLabels[i].second->setText(QString::number(usage, 'd', dataPrecision) + "%");
+        corePBs[i]->setValue(std::round(usage));
+    }
+}
+
+void TotalWidget::updateMemLabels()
+{
+    // multiplying by 1024 because /proc/memstat provides data in kilobytes
+    memoryTotalInfoLabel->setText(Translator::fitBytes(infoManager->getMemoryTotal() * 1024, dataPrecision));
+    memoryAvailPieChart->getPieChart()->clear(true);
+    Translator::SizedValue memAvail = Translator::fitBytesToNumber(infoManager->getMemoryAvailable() * 1024, dataPrecision);
+    memoryAvailPieChart->getPieChart()->addValue(tr("Available"), memAvail.first, memAvail.second, QBrush(hddAvailColor), true);
+    Translator::SizedValue memBusy = Translator::fitBytesToNumber(infoManager->getMemoryBusy() * 1024, dataPrecision);
+    memoryAvailPieChart->getPieChart()->addValue(tr("Busy"), memBusy.first, memBusy.second, QBrush(hddBusyColor));
+    swapTotalInfoLabel->setText(Translator::fitBytes(infoManager->getSwapTotal() * 1024, dataPrecision));
+    swapAvailPieChart->getPieChart()->clear(true);
+    Translator::SizedValue swapAvail = Translator::fitBytesToNumber(infoManager->getSwapAvailable() * 1024, dataPrecision);
+    swapAvailPieChart->getPieChart()->addValue(tr("Available"), swapAvail.first, swapAvail.second, QBrush(hddAvailColor), true);
+    Translator::SizedValue swapBusy = Translator::fitBytesToNumber(infoManager->getSwapBusy() * 1024, dataPrecision);
+    swapAvailPieChart->getPieChart()->addValue(tr("Busy"), swapBusy.first, swapBusy.second, QBrush(hddBusyColor));
+}
+
+void TotalWidget::updateNetLabels()
+{
+    networkIncomeInfoLabel->setText(Translator::fitBytes(infoManager->getIncome(), dataPrecision));
+    networkOutcomeInfoLabel->setText(Translator::fitBytes(infoManager->getOutcome(), dataPrecision));
+}
+
+void TotalWidget::updateHddLabels()
+{
+    hddReadInfoLabel->setText(Translator::fitBytes(infoManager->getDeviceActivity().bytesRead, dataPrecision));
+    hddWriteInfoLabel->setText(Translator::fitBytes(infoManager->getDeviceActivity().bytesWrite, dataPrecision));
+}
+
+// settings setters
+void TotalWidget::setDataPrecision(int prec)
+{
+    dataPrecision = prec;
+    update();
+}
+
+void TotalWidget::setChartGridEnabled(bool) {}
+
+void TotalWidget::setChartMode(Modes) {}
 
 /*
     Tries to continue or start work.
@@ -133,16 +210,15 @@ TotalWidget::TotalWidget(CPUInfo* _cpuInfo, MemInfo* _meminfo, NetInfo* _netInfo
 */
 void TotalWidget::start()
 {
-    if(!cpuinfo || !meminfo || !netInfo)
-    {
-        return;
-    }
     try
     {
         updater();
         EmulateableWidget::start();
     }
-    catch (...) {}
+    catch (...)
+    {
+        qWarning() << "Total widget is not working";
+    }
 }
 
 /*
@@ -150,28 +226,20 @@ void TotalWidget::start()
 */
 void TotalWidget::updater()
 {
-    // updating values
-    meminfo->update();
-    cpuinfo->update();
-    netInfo->update();
-
-    // updating labels
-    // multiplying by 1024 because /proc/memstat provides data in kilobytes
-    memoryTotalInfoLabel->setText(Translator::fitBytes(meminfo->memTotal * 1024, dataPrecision));
-    memoryAvailInfoLabel->setText(Translator::fitBytes(meminfo->memAvailable * 1024, dataPrecision));
-    memoryAvailPB->setValue((float)meminfo->memAvailable / meminfo->memTotal * 100);
-    memoryUsageInfoLabel->setText(QString::number(meminfo->memoryUsage(), 'd', dataPrecision) + "%");
-    memoryUsagePB->setValue(std::round(meminfo->memoryUsage()));
-    swapTotalInfoLabel->setText(Translator::fitBytes(meminfo->swapTotal * 1024, dataPrecision));
-    swapAvailInfoLabel->setText(Translator::fitBytes(meminfo->swapFree * 1024, dataPrecision));
-    swapAvailPB->setValue((float)meminfo->swapFree / meminfo->swapTotal * 100);
-    cpuTotalInfoLabel->setText(QString::number(cpuinfo->getInfo(0), 'd', dataPrecision) + "%");
-    for(int i = 0; i < coreCount; ++i)
+    if(infoManager->isCpuInfoInitialized())
     {
-        float usage = cpuinfo->getInfo(i + 1);
-        coreLabels[i].second->setText(QString::number(usage, 'd', dataPrecision) + "%");
-        corePBs[i]->setValue(std::round(usage));
+        updateCpuLabels();
     }
-    networkIncomeInfoLabel->setText(Translator::fitBytes(netInfo->getIncome(), dataPrecision));
-    networkOutcomeInfoLabel->setText(Translator::fitBytes(netInfo->getOutcome(), dataPrecision));
+    if(infoManager->isMemInfoInitialized())
+    {
+        updateMemLabels();
+    }
+    if(infoManager->isNetInfoInitialized())
+    {
+        updateNetLabels();
+    }
+    if(infoManager->isHddInfoInitialized())
+    {
+        updateHddLabels();
+    }
 }

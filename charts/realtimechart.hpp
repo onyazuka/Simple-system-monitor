@@ -4,6 +4,16 @@
 #include <QtGui>
 #include "chartsnamespace.hpp"
 
+class RealtimeChartException
+{
+public:
+    RealtimeChartException(const std::string& _descr)
+        : descr{_descr} {}
+    const std::string& what() { return descr; }
+private:
+    std::string descr;
+};
+
 /*
     Builds chart in real time.
     draws chart for 'maxValues' values. User can call addValue method that updates graph.
@@ -94,7 +104,6 @@ private:
     QBrush backgroundBrush;
     int updateTime;
 
-    //private
     //those 2 values used when force max or min are not set - for counting new max and min
         // when this max or min is gone
     int forceMaxEstablishedTurnsBack;
@@ -107,8 +116,6 @@ private:
 public slots:
     void start() { if(updateTimer) updateTimer->start(updateTime);}
     void stop() { if(updateTimer) updateTimer->stop();}
-
-private slots:
     void addValues(const QVector<double>& newValues);
     void addValues(const std::vector<double>& newValues);
 };

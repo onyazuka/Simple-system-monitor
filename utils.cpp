@@ -6,30 +6,38 @@
 */
 QString Translator::fitBytes(double value, int precision)
 {
+    SizedValue sv = fitBytesToNumber(value, precision);
+    QString res = QString::number(sv.first) + " " + sv.second;
+    return res;
+}
+
+Translator::SizedValue Translator::fitBytesToNumber(double value, int precision)
+{
     QString res;
     QString suffix;
     if(value < Sizes::KB)
     {
-        suffix = tr(" b");
+        suffix = tr("b");
     }
     else if(value < Sizes::MB)
     {
         value /= Sizes::KB;
-        suffix = tr(" KB");
+        suffix = tr("KB");
     }
     else if(value < Sizes::GB)
     {
         value /= Sizes::MB;
-        suffix = tr(" MB");
+        suffix = tr("MB");
     }
     else
     {
         value /= Sizes::GB;
-        suffix = tr(" GB");
+        suffix = tr("GB");
     }
-    res = QString::number(value, 'd', precision) + suffix;
-    return res;
+    return SizedValue(QString::number(value, 'd', precision).toDouble(), suffix);
 }
+
+
 
 /*
     Here we should register languages enum string representations.

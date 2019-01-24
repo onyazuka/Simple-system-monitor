@@ -1,10 +1,16 @@
 #include "networkwidget.hpp"
 
-NetworkWidget::NetworkWidget(NetInfo* _netinfo, QWidget* parent)
-    : EmulateableWidget{parent}, dataPrecision{2}, netinfo{_netinfo}
+NetworkWidget::NetworkWidget(InfoManager::pointer _infoManager, QWidget* parent)
+    : EmulateableWidget{parent}, dataPrecision{2}, infoManager{_infoManager}
 {
-    // creating widgets
     setUpdateInterval(500);
+    createWidgets();
+    createLayout();
+    createUpdaterFunctions();
+}
+
+void NetworkWidget::createWidgets()
+{
     incomeInfoLabel = new QLabel;
     outcomeInfoLabel = new QLabel;
     networkIncomeChart = new NetworkChart(1);
@@ -13,8 +19,10 @@ NetworkWidget::NetworkWidget(NetInfo* _netinfo, QWidget* parent)
     // setting object names for stylesheeting
     incomeInfoLabel->setObjectName(chartDescriptionName);
     outcomeInfoLabel->setObjectName(chartDescriptionName);
+}
 
-    // layouting
+void NetworkWidget::createLayout()
+{
     QVBoxLayout* vbl = new QVBoxLayout;
     QHBoxLayout* memhbl = new QHBoxLayout;
     memhbl->addWidget(incomeInfoLabel);
@@ -27,12 +35,37 @@ NetworkWidget::NetworkWidget(NetInfo* _netinfo, QWidget* parent)
     vbl->setAlignment(swaphbl, Qt::AlignCenter);
     vbl->addWidget(networkOutcomeChart, 2);
     setLayout(vbl);
+}
 
-    // providing updaters
-    NetworkIncomeUpdater niu(netinfo, true);
-    NetworkOutcomeUpdater nou(netinfo, false);
+void NetworkWidget::createUpdaterFunctions()
+{
+    NetworkIncomeUpdater niu(infoManager);
+    NetworkOutcomeUpdater nou(infoManager);
     networkIncomeChart->setUpdaterFunction(niu);
     networkOutcomeChart->setUpdaterFunction(nou);
+}
+
+// settings setters
+void NetworkWidget::setDataPrecision(int prec)
+{
+    dataPrecision = prec;
+    getNetworkIncomeChart().setDataPrecision(prec);
+    getNetworkOutcomeChart().setDataPrecision(prec);
+    update();
+}
+
+void NetworkWidget::setChartGridEnabled(bool on)
+{
+    getNetworkIncomeChart().setEnableGrid(on);
+    getNetworkOutcomeChart().setEnableGrid(on);
+    update();
+}
+
+void NetworkWidget::setChartMode(Modes mode)
+{
+    getNetworkIncomeChart().setMode(mode);
+    getNetworkOutcomeChart().setMode(mode);
+    update();
 }
 
 void NetworkWidget::stopCharts()
@@ -53,21 +86,21 @@ void NetworkWidget::restartCharts()
 */
 void NetworkWidget::start()
 {
-    if(!netinfo) return;
     try
     {
         updater();
         EmulateableWidget::start();
     }
-    catch (...) {}
+    catch (...)
+    {
+        qWarning() << "Network widget is not working";
+    }
 }
 
 void NetworkWidget::updater()
 {
-    // probably it is bad that we updating this both from updater function and updater method of class
-    netinfo->update();
-    QString label = tr("Incoming: ") + Translator::fitBytes(netinfo->getIncome(), dataPrecision);
+    QString label = tr("Incoming: ") + Translator::fitBytes(infoManager->getIncome(), dataPrecision);
     incomeInfoLabel->setText(label);
-    label = tr("Outgoing: ") + Translator::fitBytes(netinfo->getOutcome(), dataPrecision);
+    label = tr("Outgoing: ") + Translator::fitBytes(infoManager->getOutcome(), dataPrecision);
     outcomeInfoLabel->setText(label);
 }

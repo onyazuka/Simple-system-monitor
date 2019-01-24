@@ -1,27 +1,5 @@
 #pragma once
-#include <stdint.h>
-#include <string>
-#include <fstream>
-#include <vector>
-#include <iostream>
-#include "parseerror.hpp"
-
-/*
-    Has values of CPU state in this moment(times for different activities).
-*/
-struct CPUTimes
-{
-    uint64_t user;
-    uint64_t nice;
-    uint64_t system;
-    uint64_t idle;
-    uint64_t iowait;
-    uint64_t irq;
-    uint64_t softirq;
-
-    CPUTimes operator-(const CPUTimes& other);
-    float usage();
-};
+#include "parsers/cpu_parsers.hpp"
 
 /*
     WARNING: cpuInfoCount and size of load vector is always core count + 1
@@ -33,24 +11,16 @@ struct CPUTimes
 class CPUInfo
 {
 public:
-    CPUInfo(const std::string& statFile = "/proc/stat");
-    static CPUInfo fromStatFile(const std::string& statFile = "/proc/stat");
-    inline int cpuInfoCount() const {return _CPUCount;}
-    inline float getInfo(int index) const {return loadPercentages[index];}
+    typedef std::shared_ptr<CPUInfo> pointer;
+    static CPUInfo::pointer fromStatFile(const std::string& statFile = "/proc/stat");
+    inline size_t cpuCount() const { return parser->getCpuCount(); }
+    inline float getLoad(size_t core) const {return parser->getLoad(core);}
+    uint64_t getTotalWorkTime() const { return parser->getTotalWorkTime(); }
     void update();
-    inline const std::string& getCpuStatFileName() const {return stat;}
-    inline void setCpuStatFileName(const std::string& _stat) {stat = _stat;}
 private:
-
-    inline void addCPU(float perc) {_CPUCount++; loadPercentages.push_back(perc);}
-    inline void removeCPU() {_CPUCount--; loadPercentages.pop_back();}
-    void parseStatFile();
-
-    std::string stat;
-    int _CPUCount;
-    std::vector<float> loadPercentages;
-    std::vector<CPUTimes> curMeasurement;
-    std::vector<CPUTimes> lastMeasurement;
+    CPUInfo() {}
+    void parse();
+    CPUParser::pointer parser;
 };
 
 

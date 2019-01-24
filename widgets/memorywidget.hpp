@@ -1,75 +1,77 @@
 #pragma once
-#include <QtCore>
-#include <QtWidgets>
-#include <QtGui>
 #include "emulateablewidget.hpp"
-#include "../core/meminfo.hpp"
+#include "../infomanager.hpp"
 #include "../charts/percenttimerealtimechart.hpp"
 #include "utils.hpp"
-#include "../applicationnamespace.hpp"
+#include "configurablewidget.hpp"
+#include "charts/PieChart/labeled_piechart.hpp"
 
 /*-------------------------UPDATERS---------------------------*/
 
 class MemoryUsageUpdater
 {
 public:
-    MemoryUsageUpdater() {}
-    MemoryUsageUpdater(MemInfo* info, bool upd)
-        : meminfo{info}, update{upd} {}
-    // updates only if update flag passed
+    MemoryUsageUpdater(InfoManager::pointer _infoManager)
+        : infoManager{_infoManager} {}
     std::vector<double> operator()()
     {
-        // probably it is bad that we updating this both from updater function and updater method of class
-        if(update) meminfo->update();
         std::vector<double> res;
-        res.push_back(meminfo->memoryUsage());
+        res.push_back(infoManager->getMemoryUsage());
         return res;
     }
 private:
-    MemInfo* meminfo;
-    bool update;
+    InfoManager::pointer infoManager;
 };
 
 class SwapUsageUpdater
 {
 public:
-    SwapUsageUpdater() {}
-    SwapUsageUpdater(MemInfo* info, bool upd)
-        : meminfo{info}, update{upd} {}
-    // updates only if update flag passed
+    SwapUsageUpdater(InfoManager::pointer _infoManager)
+        : infoManager{_infoManager} {}
     std::vector<double> operator()()
     {
-        if(update) *meminfo = MemInfo::fromMemInfoFile();
         std::vector<double> res;
-        res.push_back(meminfo->swapUsage());
+        res.push_back(infoManager->getSwapUsage());
         return res;
     }
 private:
-    MemInfo* meminfo;
-    bool update;
+    InfoManager::pointer infoManager;
 };
 
 /*-------------------------/UPDATERS---------------------------*/
 
-class MemoryWidget : public EmulateableWidget
+/*
+    For chart updation we provide updater function.
+    *info classes update automatically by InfoManager.
+    All others(labels etc) updated by updater() function.
+*/
+class MemoryWidget : public EmulateableWidget, public ConfigurableWidget
 {
     Q_OBJECT
     typedef PercentTimeRealtimeChart MemoryChart;
 public:
-    MemoryWidget(MemInfo* _meminfo, QWidget* parent=nullptr);
+    MemoryWidget(InfoManager::pointer _infoManager, QWidget* parent=nullptr);
 
     //getters/setters
     inline int getDataPrecision() const {return dataPrecision;}
-    inline void setDataPrecision(int precision) {dataPrecision = precision;}
     inline MemoryChart& getMemoryUsageChart() const { return *memoryUsageChart; }
     inline MemoryChart& getSwapUsageChart() const { return *swapUsageChart; }
 
 private:
+    void createWidgets();
+    void createLayout();
+    void createUpdaterFunctions();
+
+    // settings setters
+    void setDataPrecision(int prec);
+    void setChartGridEnabled(bool on);
+    void setChartMode(Modes mode);
+
     //settings
     int dataPrecision;
 
     //widgets
-    MemInfo* meminfo;
+    InfoManager::pointer infoManager;
     QLabel* freeMemoryInfoLabel;
     QLabel* freeSwapInfoLabel;
     MemoryChart* memoryUsageChart;

@@ -10,17 +10,15 @@ RealtimeChart::RealtimeChart(int chartsCount, QWidget* parent)
     initializeDefaulPalette();
 
     //initializing vetors
-    charts.reserve(chartsCount);
-    chartPens.reserve(chartsCount);
-    chartBrushes.reserve(chartsCount);
+    charts.resize(chartsCount);
+    chartPens.resize(chartsCount);
+    chartBrushes.resize(chartsCount);
     for(int i = 0; i < chartsCount; ++i)
     {
-        charts.push_back(Chart());
-        chartPens.push_back(QPen());
-        chartBrushes.push_back(QBrush());
+        charts[i] = Chart();
         chartPens[i] = QPen(defaultPalette[rand() % defaultPalette.size()]);
+        chartBrushes[i] = QBrush();
     }
-
     chartLabel = new QLabel;
     update();
 }
@@ -30,7 +28,7 @@ void RealtimeChart::setMaxValues(int _maxValues)
     maxValues = _maxValues;
     if(maxValues < 0)
     {
-        qWarning() << "RealtimeChart::setMaxValues(_maxValues): _maxValues can not be less then 0";
+        throw RealtimeChartException("RealtimeChart::setMaxValues(_maxValues): _maxValues can not be less then 0");
     }
 }
 
@@ -134,8 +132,7 @@ void RealtimeChart::paintEvent(QPaintEvent* event)
       (forceMax - forceMin) == 0 ||
        maxValues == 0)
     {
-        qWarning() << "RealtimeChart::paintEvent(event): can't draw - check args";
-        return;
+        throw RealtimeChartException("RealtimeChart::paintEvent(event): can't draw - check args");
     }
 
     //using bottom - top, because we don't want rect's borders to be counted
@@ -163,14 +160,14 @@ void RealtimeChart::paintEvent(QPaintEvent* event)
     // drawing chart
     for(int chart = 0; chart < getChartsCount(); ++chart)
     {
-        QPainterPath path;
-        painter.setPen(chartPens[chart]);
-        painter.setBrush(chartBrushes[chart]);
-        path.moveTo(getPoint(0, charts[chart][0]));
         if(charts[chart].empty())
         {
             continue;
         }
+        QPainterPath path;
+        painter.setPen(chartPens[chart]);
+        painter.setBrush(chartBrushes[chart]);
+        path.moveTo(getPoint(0, charts[chart][0]));
         for(int point = 1; point < charts[chart].size(); ++point)
         {
             // one time point can not have 2 or more values
@@ -191,9 +188,7 @@ void RealtimeChart::initializeDefaulPalette()
             << QColor("green")
             << QColor("cyan")
             << QColor("blue")
-            << QColor("yellow")
-            << QColor("magenta")
-            << QColor("pink");
+            << QColor("magenta");
 }
 
 /*

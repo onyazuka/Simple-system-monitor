@@ -1,12 +1,10 @@
 #pragma once
-#include <QtCore>
-#include <QtWidgets>
-#include <QtGui>
 #include "emulateablewidget.hpp"
-#include "../core/netinfo.hpp"
+#include "../infomanager.hpp"
 #include "../charts/networkchart.hpp"
 #include "utils.hpp"
-#include "../applicationnamespace.hpp"
+#include "configurablewidget.hpp"
+#include "charts/PieChart/labeled_piechart.hpp"
 
 /*-------------------------UPDATERS---------------------------*/
 
@@ -14,21 +12,18 @@ class NetworkIncomeUpdater
 {
 public:
     NetworkIncomeUpdater() {}
-    NetworkIncomeUpdater(NetInfo* info, bool upd)
-        : netinfo{info}, update{upd}, lastIncome{info->getIncome()} {}
+    NetworkIncomeUpdater(InfoManager::pointer _infoManager)
+        : infoManager{_infoManager}, lastIncome{_infoManager->getIncome()} {}
     // updates only if update flag passed
     std::vector<double> operator()()
     {
-        // probably it is bad that we updating this both from updater function and updater method of class
-        if(update) netinfo->update();
         std::vector<double> res;
-        res.push_back(netinfo->getIncome() - lastIncome);
-        lastIncome = netinfo->getIncome();
+        res.push_back(infoManager->getIncome() - lastIncome);
+        lastIncome = infoManager->getIncome();
         return res;
     }
 private:
-    NetInfo* netinfo;
-    bool update;
+    InfoManager::pointer infoManager;
     uint64_t lastIncome;
 };
 
@@ -36,44 +31,54 @@ class NetworkOutcomeUpdater
 {
 public:
     NetworkOutcomeUpdater() {}
-    NetworkOutcomeUpdater(NetInfo* info, bool upd)
-        : netinfo{info}, update{upd}, lastOutcome{info->getOutcome()} {}
+    NetworkOutcomeUpdater(InfoManager::pointer _infoManager)
+        : infoManager{_infoManager}, lastOutcome{_infoManager->getOutcome()} {}
     // updates only if update flag passed
     std::vector<double> operator()()
     {
-        // probably it is bad that we updating this both from updater function and updater method of class
-        if(update) netinfo->update();
         std::vector<double> res;
-        res.push_back(netinfo->getOutcome() - lastOutcome);
-        lastOutcome = netinfo->getOutcome();
+        res.push_back(infoManager->getOutcome() - lastOutcome);
+        lastOutcome = infoManager->getOutcome();
         return res;
     }
 private:
-    NetInfo* netinfo;
-    bool update;
+    InfoManager::pointer infoManager;
     uint64_t lastOutcome;
 };
 
 /*-------------------------/UPDATERS---------------------------*/
 
-class NetworkWidget : public EmulateableWidget
+/*
+    For chart updation we provide updater function.
+    *info classes update automatically by InfoManager.
+    All others(labels etc) updated by updater() function.
+*/
+class NetworkWidget : public EmulateableWidget, public ConfigurableWidget
 {
     Q_OBJECT
 public:
-    NetworkWidget(NetInfo* _netinfo, QWidget* parent=nullptr);
+    NetworkWidget(InfoManager::pointer _infoManager, QWidget* parent=nullptr);
 
     //getters/setters
     inline int getDataPrecision() const {return dataPrecision;}
-    inline void setDataPrecision(int precision) {dataPrecision = precision;}
     inline NetworkChart& getNetworkIncomeChart() const {return *networkIncomeChart;}
     inline NetworkChart& getNetworkOutcomeChart() const {return *networkOutcomeChart;}
 
 private:
+    void createWidgets();
+    void createLayout();
+    void createUpdaterFunctions();
+
+    // settings setters
+    void setDataPrecision(int prec);
+    void setChartGridEnabled(bool on);
+    void setChartMode(Modes mode);
+
     //settings
     int dataPrecision;
 
     //widgets
-    NetInfo* netinfo;
+    InfoManager::pointer infoManager;
     QLabel* incomeInfoLabel;
     QLabel* outcomeInfoLabel;
     NetworkChart* networkIncomeChart;

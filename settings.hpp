@@ -8,24 +8,28 @@
 */
 struct Settings
 {
-    QString cpuStatPath;
-    QString memStatPath;
-    QString netStatPath;
     int dataPrecision;
     bool gridOn;
     Modes defaultChartsMode;
     Languages language;
+    bool enableCpu;
+    bool enableMem;
+    bool enableNet;
+    bool enableHdd;
+    bool enableProc;
 };
 
 const Settings DefaultSettings
 {
-    "/proc/stat",
-    "/proc/meminfo",
-    "/proc/net/netstat",
     2,
     true,
     Modes::Minute,
-    Languages::English
+    Languages::English,
+    true,
+    true,
+    true,
+    true,
+    true
 };
 
 

@@ -18,7 +18,6 @@ void EmulateableWidget::setUpdateInterval(int ms)
 */
 void EmulateableWidget::start()
 {
-    updater();
     updateTimer.start(updateMsecs);
 }
 

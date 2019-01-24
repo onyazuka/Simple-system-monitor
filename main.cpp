@@ -5,7 +5,7 @@
 #include <QtGui>
 #include "systemmonitor.hpp"
 #include "charts/unittest.hpp"
-#include "applicationnamespace.hpp"
+#include "systemmonitorunittests.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -26,9 +26,9 @@ int main(int argc, char *argv[])
     }
 
     // charts tests
-    QTest::qExec(new RealtimeChartTest, argc, argv);
     QTest::qExec(new SystemMonitorTest, argc, argv);
 #endif
+
     int exitCode = 0;
     QTranslator translator;
     while(true)

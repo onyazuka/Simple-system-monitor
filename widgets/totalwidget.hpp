@@ -1,13 +1,9 @@
 #pragma once
-#include <QtCore>
-#include <QtWidgets>
-#include <QtGui>
 #include "emulateablewidget.hpp"
-#include "core/cpuinfo.hpp"
-#include "core/meminfo.hpp"
-#include "core/netinfo.hpp"
+#include "../infomanager.hpp"
 #include "utils.hpp"
-#include "../applicationnamespace.hpp"
+#include "configurablewidget.hpp"
+#include "charts/PieChart/labeled_piechart.hpp"
 
 const QString MAIN_DLG_STYLESHEET = "QLabel#Title {color: red;}";
 
@@ -17,23 +13,33 @@ const QString MAIN_DLG_STYLESHEET = "QLabel#Title {color: red;}";
         data precision
     User SHOULD call start method to start working.
 */
-class TotalWidget : public EmulateableWidget
+class TotalWidget : public EmulateableWidget, public ConfigurableWidget
 {
     Q_OBJECT
     typedef QPair<QLabel*, QLabel*> CoreLabelsPair;
     typedef QVector<CoreLabelsPair> CoreLabels;
     typedef QVector<QProgressBar*> CoreProgressBars;
 public:
-    TotalWidget(CPUInfo* _cpuInfo, MemInfo* _meminfo, NetInfo* _netInfo, QWidget* parent=nullptr);
+    TotalWidget(InfoManager::pointer _infoManager, QWidget* parent=nullptr);
 
     //getters/setters
     inline int getDataPrecision() const {return dataPrecision;}
-    inline void setDataPrecision(int precision) {dataPrecision = precision;}
 
 private:
-    CPUInfo* cpuinfo;
-    MemInfo* meminfo;
-    NetInfo* netInfo;
+    void createWidgets();
+    void createLayout();
+
+    void updateCpuLabels();
+    void updateMemLabels();
+    void updateNetLabels();
+    void updateHddLabels();
+
+    // settings setters
+    void setDataPrecision(int prec);
+    void setChartGridEnabled(bool on);
+    void setChartMode(Modes mode);
+
+    InfoManager::pointer infoManager;
     int coreCount;
 
     //settings
@@ -43,19 +49,12 @@ private:
     QLabel* memoryLabel;
     QLabel* memoryTotalLabel;
     QLabel* memoryTotalInfoLabel;
-    QLabel* memoryAvailLabel;
-    QLabel* memoryAvailInfoLabel;
-    QProgressBar* memoryAvailPB;
-    QLabel* memoryUsageLabel;
-    QLabel* memoryUsageInfoLabel;
-    QProgressBar* memoryUsagePB;
+    LabeledPiechart* memoryAvailPieChart;
 
     QLabel* swapLabel;
     QLabel* swapTotalLabel;
     QLabel* swapTotalInfoLabel;
-    QLabel* swapAvailLabel;
-    QLabel* swapAvailInfoLabel;
-    QProgressBar* swapAvailPB;
+    LabeledPiechart* swapAvailPieChart;
 
     QLabel* cpuLabel;
     QLabel* cpuTotalLabel;
@@ -68,6 +67,17 @@ private:
     QLabel* networkIncomeInfoLabel;
     QLabel* networkOutcomeLabel;
     QLabel* networkOutcomeInfoLabel;
+
+    QLabel* hddLabel;
+    QLabel* hddReadLabel;
+    QLabel* hddReadInfoLabel;
+    QLabel* hddWriteLabel;
+    QLabel* hddWriteInfoLabel;
+
+    QFrame* memorySplitter;
+    QFrame* swapSplitter;
+    QFrame* cpuSplitter;
+    QFrame* netSplitter;
 
 protected slots:
     void start();

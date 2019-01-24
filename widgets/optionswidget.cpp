@@ -8,27 +8,26 @@
         4. Set this widget to scroll area;
         5. Add scroll area to main layout.
 */
-OptionsWidget::OptionsWidget(int coresCount, const Settings& settings, QWidget *parent)
-    : EmulateableWidget{parent}, initSettings{settings}, cores{coresCount}
+OptionsWidget::OptionsWidget(const Settings& settings, QWidget *parent)
+    : QWidget{parent}, initSettings{settings}
 {
-    // widgets
-    QScrollArea* systemScrollArea = new QScrollArea(this);
-    QScrollArea* styleScrollArea = new QScrollArea(this);
+    createWidgets();
+    updateWidgets(settings);
+    createLayout();
+    makeConnections();
+}
 
-    cpuStatPathLabel = new QLabel(tr("CPU stat path: "));
-    cpuStatPathLE = new QLineEdit;
-    cpuStatPathLabel->setBuddy(cpuStatPathLE);
-    cpuStatPathLabel->setObjectName(propertyLabelsName);
+void OptionsWidget::_reset()
+{
+    initSettings = DefaultSettings;
+    updateWidgets(initSettings);
+    emit settingsChanged();
+}
 
-    memStatPathLabel = new QLabel(tr("Memory stat path: "));
-    memStatPathLE = new QLineEdit;
-    memStatPathLabel->setBuddy(memStatPathLabel);
-    memStatPathLabel->setObjectName(propertyLabelsName);
-
-    netStatPathLabel = new QLabel(tr("Network stat path: "));
-    netStatPathLE = new QLineEdit;
-    netStatPathLabel->setBuddy(netStatPathLabel);
-    netStatPathLabel->setObjectName(propertyLabelsName);
+void OptionsWidget::createWidgets()
+{
+    systemScrollArea = new QScrollArea(this);
+    styleScrollArea = new QScrollArea(this);
 
     languageLabel = new QLabel(tr("Language: "));
     languageCB = new QComboBox;
@@ -36,6 +35,11 @@ OptionsWidget::OptionsWidget(int coresCount, const Settings& settings, QWidget *
     languageCB->addItem(Translator::languageToString(Languages::Russian), Languages::Russian);
     languageLabel->setBuddy(languageCB);
     languageLabel->setObjectName(propertyLabelsName);
+
+    widgetsEnableLabel = new QLabel(tr("Enabled widgets: "));
+    widgetsEnableLW = new QListWidget();
+    updateWidgetsEnableList(initSettings);
+    widgetsEnableLabel->setObjectName(propertyLabelsName);
 
     dataPrecisionLabel = new QLabel(tr("Data precision(digits): "));
     dataPrecisionSB = new QSpinBox;
@@ -46,7 +50,7 @@ OptionsWidget::OptionsWidget(int coresCount, const Settings& settings, QWidget *
     gridOnOffLabel = new QLabel(tr("Grid on: "));
     gridOnOffCB = new QCheckBox;
     gridOnOffLabel->setBuddy(gridOnOffCB);
-    gridOnOffCB->setObjectName(propertyLabelsName);
+    gridOnOffLabel->setObjectName(propertyLabelsName);
 
     defaultChartsModeLabel = new QLabel(tr("Default charts mode: "));
     defaultChartsModeCB = new QComboBox;
@@ -59,31 +63,47 @@ OptionsWidget::OptionsWidget(int coresCount, const Settings& settings, QWidget *
     defaultPB = new QPushButton(tr("Reset"));
     savePB = new QPushButton(tr("Save"));
     cancelPB = new QPushButton(tr("Cancel"));
+}
 
-    updateWidgets(settings);
+void OptionsWidget::updateWidgetsEnableList(const Settings& _settings)
+{
+    widgetsEnableLW->clear();
+    QListWidgetItem* cpuwi = new QListWidgetItem(tr("CPU"));
+    _settings.enableCpu ? cpuwi->setCheckState(Qt::Checked) : cpuwi->setCheckState(Qt::Unchecked);
+    widgetsEnableLW->addItem(cpuwi);
+    QListWidgetItem* memwi = new QListWidgetItem(tr("Memory"));
+    _settings.enableMem ? memwi->setCheckState(Qt::Checked) : memwi->setCheckState(Qt::Unchecked);
+    widgetsEnableLW->addItem(memwi);
+    QListWidgetItem* netwi = new QListWidgetItem(tr("Network"));
+    _settings.enableNet ? netwi->setCheckState(Qt::Checked) : netwi->setCheckState(Qt::Unchecked);
+    widgetsEnableLW->addItem(netwi);
+    QListWidgetItem* hddwi = new QListWidgetItem(tr("Hdd"));
+    _settings.enableHdd ? hddwi->setCheckState(Qt::Checked) : hddwi->setCheckState(Qt::Unchecked);
+    widgetsEnableLW->addItem(hddwi);
+    QListWidgetItem* procwi = new QListWidgetItem(tr("Processes"));
+    _settings.enableProc ? procwi->setCheckState(Qt::Checked) : procwi->setCheckState(Qt::Unchecked);
+    widgetsEnableLW->addItem(procwi);
+}
 
-    // layouting
-
+void OptionsWidget::createLayout()
+{
     QWidget* systemScrollWidget = new QWidget;
     QGridLayout* systemLayout = new QGridLayout(systemScrollWidget);
     QWidget* styleScrollWidget = new QWidget;
     QGridLayout* styleLayout = new QGridLayout(styleScrollWidget);
 
-    systemLayout->addWidget(cpuStatPathLabel, 0, 0, 1, 1);
-    systemLayout->addWidget(cpuStatPathLE, 0, 1, 1, 1);
-    systemLayout->addWidget(memStatPathLabel, 1, 0, 1, 1);
-    systemLayout->addWidget(memStatPathLE, 1, 1, 1, 1);
-    systemLayout->addWidget(netStatPathLabel, 2, 0, 1, 1);
-    systemLayout->addWidget(netStatPathLE, 2, 1, 1, 1);
-    systemLayout->addWidget(languageLabel, 3, 0, 1, 1);
-    systemLayout->addWidget(languageCB, 3, 1, 1, 1);
+    int row = 0;
+    systemLayout->addWidget(languageLabel, row, 0, 1, 1);
+    systemLayout->addWidget(languageCB, row++, 1, 1, 1);
+    systemLayout->addWidget(widgetsEnableLabel, row, 0, 1, 1);
+    systemLayout->addWidget(widgetsEnableLW, row++, 1, 1, 1);
 
-    styleLayout->addWidget(dataPrecisionLabel, 0, 0, 1, 1);
-    styleLayout->addWidget(dataPrecisionSB, 0, 1, 1, 1);
-    styleLayout->addWidget(gridOnOffLabel, 1, 0, 1, 1);
-    styleLayout->addWidget(gridOnOffCB, 1, 1, 1, 1);
-    styleLayout->addWidget(defaultChartsModeLabel, 2, 0, 1, 1);
-    styleLayout->addWidget(defaultChartsModeCB, 2, 1, 1, 1);
+    styleLayout->addWidget(dataPrecisionLabel, row, 0, 1, 1);
+    styleLayout->addWidget(dataPrecisionSB, row++, 1, 1, 1);
+    styleLayout->addWidget(gridOnOffLabel, row, 0, 1, 1);
+    styleLayout->addWidget(gridOnOffCB, row++, 1, 1, 1);
+    styleLayout->addWidget(defaultChartsModeLabel, row, 0, 1, 1);
+    styleLayout->addWidget(defaultChartsModeCB, row++, 1, 1, 1);
 
     QGridLayout* buttonsLayout = new QGridLayout;
     buttonsLayout->addWidget(savePB, 0, 0, 1, 1);
@@ -101,18 +121,13 @@ OptionsWidget::OptionsWidget(int coresCount, const Settings& settings, QWidget *
     mainLayout->addLayout(buttonsLayout);
 
     setLayout(mainLayout);
+}
 
-    // connections
+void OptionsWidget::makeConnections()
+{
     connect(savePB, SIGNAL(pressed()), this, SLOT(saveSettings()));
     connect(cancelPB, SIGNAL(pressed()), this, SLOT(resetSettings()));
     connect(defaultPB, SIGNAL(pressed()), this, SLOT(resetSettingsToDefault()));
-}
-
-void OptionsWidget::_reset()
-{
-    initSettings = DefaultSettings;
-    updateWidgets(initSettings);
-    emit settingsChanged();
 }
 
 /*
@@ -120,51 +135,48 @@ void OptionsWidget::_reset()
 */
 void OptionsWidget::updateWidgets(const Settings& settings)
 {
-    if(!settings.cpuStatPath.isEmpty())
-    {
-        cpuStatPathLE->setText(settings.cpuStatPath);
-    }
-    if(!settings.memStatPath.isEmpty())
-    {
-        memStatPathLE->setText(settings.memStatPath);
-    }
-    if(!settings.netStatPath.isEmpty())
-    {
-        netStatPathLE->setText(settings.netStatPath);
-    }
-
     dataPrecisionSB->setValue(settings.dataPrecision);
     gridOnOffCB->setChecked(settings.gridOn);
     languageCB->setCurrentIndex((int)settings.language);
-
+    updateWidgetsEnableList(settings);
     defaultChartsModeCB->setCurrentIndex((int)settings.defaultChartsMode);
+}
+
+/*
+    WARNING! Checking order should be the same, as the Adding order.
+*/
+bool OptionsWidget::areEnableWidgetsSettingsChanged() const
+{
+    if((bool)widgetsEnableLW->item(0)->checkState() != initSettings.enableCpu)
+    {
+        return true;
+    }
+    if((bool)widgetsEnableLW->item(1)->checkState() != initSettings.enableMem)
+    {
+        return true;
+    }
+    if((bool)widgetsEnableLW->item(2)->checkState() != initSettings.enableNet)
+    {
+        return true;
+    }
+    if((bool)widgetsEnableLW->item(3)->checkState() != initSettings.enableHdd)
+    {
+        return true;
+    }
+    if((bool)widgetsEnableLW->item(4)->checkState() != initSettings.enableProc)
+    {
+        return true;
+    }
+    return false;
 }
 
 // returns true if system settings has been changed
 bool OptionsWidget::areSystemSettingsChanged() const
-{
+{   
     return (Languages)languageCB->currentData().value<int>() != initSettings.language ||
-            cpuStatPathLE->text() != initSettings.cpuStatPath ||
-            memStatPathLE->text() != initSettings.memStatPath ||
-            netStatPathLE->text() != initSettings.netStatPath;
+            areEnableWidgetsSettingsChanged();
 }
 
-// checks correctness of new stat paths
-// returns true if everything is correct
-bool OptionsWidget::checkStatPaths()
-{
-    try
-    {
-        CPUInfo cpuinfo(cpuStatPathLE->text().toStdString());
-        MemInfo meminfo(memStatPathLE->text().toStdString());
-        NetInfo netinfo(netStatPathLE->text().toStdString());
-    }
-    catch(...)
-    {
-        return false;
-    }
-    return true;
-}
 
 // if "Reset" pressed
 void OptionsWidget::resetSettingsToDefault()
@@ -184,19 +196,17 @@ void OptionsWidget::resetSettings()
 
 void OptionsWidget::saveSettings()
 {
-    if(!checkStatPaths())
-    {
-        QMessageBox::warning(this, tr("Error"), tr("Some new stat file path is incorrect. Settings can not be applied."));
-        return;
-    }
     Settings newSettings;
-    newSettings.cpuStatPath = cpuStatPathLE->text();
-    newSettings.memStatPath = memStatPathLE->text();
-    newSettings.netStatPath = netStatPathLE->text();
     newSettings.dataPrecision = dataPrecisionSB->value();
     newSettings.gridOn = gridOnOffCB->isChecked();
     newSettings.defaultChartsMode = (Modes)(defaultChartsModeCB->currentData().value<int>());
     newSettings.language = (Languages)(languageCB->currentData().value<int>());
+    newSettings.enableCpu = (bool)widgetsEnableLW->item(0)->checkState();
+    newSettings.enableMem = (bool)widgetsEnableLW->item(1)->checkState();
+    newSettings.enableNet = (bool)widgetsEnableLW->item(2)->checkState();
+    newSettings.enableHdd = (bool)widgetsEnableLW->item(3)->checkState();
+    newSettings.enableProc = (bool)widgetsEnableLW->item(4)->checkState();
+
 
     bool systemChanged = areSystemSettingsChanged();
     if(systemChanged)

@@ -1,10 +1,16 @@
 #include "memorywidget.hpp"
 
-MemoryWidget::MemoryWidget(MemInfo* _meminfo, QWidget* parent)
-    : EmulateableWidget{parent}, dataPrecision{2}, meminfo{_meminfo}
+MemoryWidget::MemoryWidget(InfoManager::pointer _infoManager, QWidget* parent)
+    : EmulateableWidget{parent}, dataPrecision{2}, infoManager{_infoManager}
 {
-    // creating widgets
     setUpdateInterval(500);
+    createWidgets();
+    createLayout();
+    createUpdaterFunctions();
+}
+
+void MemoryWidget::createWidgets()
+{
     freeMemoryInfoLabel = new QLabel;
     freeSwapInfoLabel = new QLabel;
     memoryUsageChart = new MemoryChart(1);
@@ -13,8 +19,10 @@ MemoryWidget::MemoryWidget(MemInfo* _meminfo, QWidget* parent)
     // setting object names for stylesheeting
     freeMemoryInfoLabel->setObjectName(chartDescriptionName);
     freeSwapInfoLabel->setObjectName(chartDescriptionName);
+}
 
-    // layouting
+void MemoryWidget::createLayout()
+{
     QVBoxLayout* vbl = new QVBoxLayout;
     QHBoxLayout* memhbl = new QHBoxLayout;
     memhbl->addWidget(freeMemoryInfoLabel);
@@ -27,12 +35,35 @@ MemoryWidget::MemoryWidget(MemInfo* _meminfo, QWidget* parent)
     vbl->setAlignment(swaphbl, Qt::AlignCenter);
     vbl->addWidget(swapUsageChart, 2);
     setLayout(vbl);
+}
 
-    // providing updaters
-    MemoryUsageUpdater muu(meminfo, true);
-    SwapUsageUpdater   suu(meminfo, false);
+void MemoryWidget::createUpdaterFunctions()
+{
+    MemoryUsageUpdater muu(infoManager);
+    SwapUsageUpdater   suu(infoManager);
     memoryUsageChart->setUpdaterFunction(muu);
     swapUsageChart->setUpdaterFunction(suu);
+}
+
+// settings setters
+void MemoryWidget::setDataPrecision(int prec)
+{
+    dataPrecision = prec;
+    update();
+}
+
+void MemoryWidget::setChartGridEnabled(bool on)
+{
+    getMemoryUsageChart().setEnableGrid(on);
+    getSwapUsageChart().setEnableGrid(on);
+    update();
+}
+
+void MemoryWidget::setChartMode(Modes mode)
+{
+    getMemoryUsageChart().setMode(mode);
+    getSwapUsageChart().setMode(mode);
+    update();
 }
 
 void MemoryWidget::stopCharts()
@@ -53,22 +84,22 @@ void MemoryWidget::restartCharts()
 */
 void MemoryWidget::start()
 {
-    if(!meminfo) return;
     try
     {
         updater();
         EmulateableWidget::start();
     }
-    catch (...) {}
+    catch (...)
+    {
+        qWarning() << "Memory widget is not working";
+    }
 }
 
 void MemoryWidget::updater()
 {
-    // probably it is bad that we updating this both from updater function and updater method of class
-    meminfo->update();
     // multiplying by 1024 because /proc/memstat provides data in kilobytes
-    QString label = tr("Memory free: ") + Translator::fitBytes(meminfo->memAvailable * 1024, dataPrecision);
+    QString label = tr("Memory free: ") + Translator::fitBytes(infoManager->getMemoryAvailable() * 1024, dataPrecision);
     freeMemoryInfoLabel->setText(label);
-    label = tr("Swap free: ") + Translator::fitBytes(meminfo->swapFree * 1024, dataPrecision);
+    label = tr("Swap free: ") + Translator::fitBytes(infoManager->getSwapAvailable() * 1024, dataPrecision);
     freeSwapInfoLabel->setText(label);
 }

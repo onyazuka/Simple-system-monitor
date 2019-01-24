@@ -2,7 +2,7 @@ QT += gui core widgets testlib
 
 CONFIG += c++11
 CONFIG -= app_bundle
-LIBS += -lgtest
+LIBS += -lgtest -lstdc++fs
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked deprecated (the exact warnings
@@ -32,7 +32,22 @@ SOURCES += main.cpp \
     utils.cpp \
     widgets/networkwidget.cpp \
     widgets/optionswidget.cpp \
-    systemmonitorunittests.cpp
+    systemmonitorunittests.cpp \
+    core/parsers/cpu_parsers.cpp \
+    core/parsers/memory_parsers.cpp \
+    core/parsers/network_parsers.cpp \
+    infomanager.cpp \
+    core/hddinfo.cpp \
+    core/procinfo.cpp \
+    core/parsers/processes_parsers.cpp \
+    core/parsers/hdd_parsers.cpp \
+    charts/PieChart/labeled_piechart.cpp \
+    charts/PieChart/piechart.cpp \
+    widgets/configurablewidget.cpp \
+    widgets/hddwidget.cpp \
+    widgets/processwidget/processwidgetmodel.cpp \
+    widgets/processwidget/processeswidget.cpp \
+    system/system.cpp
 
 HEADERS += \
     core/cpuinfo.hpp \
@@ -42,7 +57,6 @@ HEADERS += \
     systemmonitor.hpp \
     widgets/emulateablewidget.hpp \
     widgets/cpuwidget.hpp \
-    core/parseerror.hpp \
     widgets/memorywidget.hpp \
     charts/networkchart.hpp \
     charts/percenttimerealtimechart.hpp \
@@ -53,7 +67,25 @@ HEADERS += \
     widgets/optionswidget.hpp \
     settings.hpp \
     charts/chartsnamespace.hpp \
-    applicationnamespace.hpp
+    applicationnamespace.hpp \
+    core/parsers/cpu_parsers.hpp \
+    core/parsers/memory_parsers.hpp \
+    core/parsers/network_parsers.hpp \
+    core/parsers/parseerror.hpp \
+    core/parsers/parser.hpp \
+    infomanager.hpp \
+    systemmonitorunittests.hpp \
+    core/hddinfo.hpp \
+    core/procinfo.hpp \
+    core/parsers/processes_parsers.hpp \
+    core/parsers/hdd_parsers.hpp \
+    charts/PieChart/labeled_piechart.hpp \
+    charts/PieChart/piechart.hpp \
+    widgets/configurablewidget.hpp \
+    widgets/hddwidget.hpp \
+    widgets/processwidget/processwidgetmodel.hpp \
+    widgets/processwidget/processeswidget.hpp \
+    system/system.hpp
 
 TRANSLATIONS += \
     translation.ts
