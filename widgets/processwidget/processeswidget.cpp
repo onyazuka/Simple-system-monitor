@@ -26,6 +26,7 @@ void ProcessesWidget::createWidgets()
     processesView->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
     processesView->setContextMenuPolicy(Qt::CustomContextMenu);
     processesView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    processesView->setAutoScroll(false);
     for(int i = 0; i < processesView->horizontalHeader()->count(); ++i)
     {
         // all columns are sized by contents, except last - it is stretched
@@ -84,10 +85,18 @@ void ProcessesWidget::start()
     }
 }
 
+/*
+    update with preserving current selection
+*/
 void ProcessesWidget::updater()
 {
+    // saving selection index
+    QModelIndex selectionIndex = processesView->currentIndex();
+    // updating
     QHash<PID, ProcessActivities> curActivities = unorderedMapToQHash(infoManager->getActivitiesMap());
     processesModel->clearAndSetActivitiesMap(std::move(curActivities));
+    // restoring selection
+    processesView->setCurrentIndex(sortProxyModel->index(selectionIndex.row(), 0));
 }
 
 void ProcessesWidget::showProcessContextMenu(QPoint point, PID pid)

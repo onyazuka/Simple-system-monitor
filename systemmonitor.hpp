@@ -8,15 +8,6 @@
 #include "widgets/optionswidget.hpp"
 #include "settings.hpp"
 
-const QString GlobalStylesheet = QString("QProgressBar::chunk {background: qlineargradient(x1:0, y1:0, x2:1, y2:1,"
-                                 "stop:0 rgb(90,220,90), stop:1 rgb(70,200,70));"
-                                 "margin: 2px 1px 1px 2px;}"
-                                 "QProgressBar {text-align: center;}"
-                                 "QLabel#%1 {font-size: 11px; font-weight:bold;}"
-                                 "QLabel#%2 {font-size: 11px; font-style:italic;}"
-                                 "QLabel#%3 {font-size: 11px; font-style:italic;}"
-                                 "QLabel#%4 {font-size: 11px; font-style:italic;}").arg(titleLabelsName, chartDescriptionName, infoLabelsName, propertyLabelsName);
-
 /*
     Tabs container - main class.
     TabWidgets - used for identifying widget type by tab index
@@ -30,10 +21,11 @@ class SystemMonitor : public QWidget
 public:
     SystemMonitor(QWidget* parent=nullptr);
     const Settings& getAppSettings() const { return appSettings; }
+    enum Widgets{Total, CPU, Memory, Network, Hdd, Processes, Options};
+    typedef QVector<QString> WidgetsIcons;
 protected:
     virtual void closeEvent(QCloseEvent *event);
 private:
-    enum Widgets{Total, CPU, Memory, Network, Hdd, Processes, Options};
     QTabWidget* tabWidget;
     TotalWidget* totalWidget;
     CPUWidget* cpuWidget;
@@ -44,6 +36,11 @@ private:
     OptionsWidget* optionsWidget;
     InfoManager::pointer infoManager;
     Settings appSettings;
+
+    //styling
+    static const WidgetsIcons widgetsIcons;
+    static const WidgetsIcons widgetsReversedIcons;
+    int lastActiveTab;
 
     void createInfoManager(bool initCpu = true, bool initMem = true, bool initNet = true, bool initHdd = true, bool initProc = true);
     void createWidgets();
@@ -58,6 +55,7 @@ private:
 public slots:
     void activateWidgetAndStopOthers(int index);
     void widgetsStarterStopper(int index);
+    void changeTabIcon(int index);
 
 private slots:
     void applySettings(const Settings& settings);

@@ -14,6 +14,7 @@ void CPUWidget::createWidgets()
     totalCPUChart = new CPUChart(1);
     cpuLabels.push_back(totalCPULabel);
     cpuCharts.push_back(totalCPUChart);
+    cpuCharts.back()->setDrawUnderLine(true);
 
     int cpuCount = infoManager->cpuCount();
 
@@ -23,6 +24,7 @@ void CPUWidget::createWidgets()
         QString labelText = tr("Core %1").arg(QString::number(i));
         cpuLabels.push_back(new QLabel(labelText));
         cpuCharts.push_back(new CPUChart(1));
+        cpuCharts.back()->setDrawUnderLine(true);
     }
 
     // setting objects names for stylesheeting

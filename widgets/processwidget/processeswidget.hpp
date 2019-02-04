@@ -38,4 +38,3 @@ protected slots:
     void killProcess(PID pid);
     void terminateProcess(PID pid);
 };
-

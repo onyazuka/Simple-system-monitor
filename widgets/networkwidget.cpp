@@ -14,7 +14,9 @@ void NetworkWidget::createWidgets()
     incomeInfoLabel = new QLabel;
     outcomeInfoLabel = new QLabel;
     networkIncomeChart = new NetworkChart(1);
+    networkIncomeChart->setDrawUnderLine(true);
     networkOutcomeChart = new NetworkChart(1);
+    networkOutcomeChart->setDrawUnderLine(true);
 
     // setting object names for stylesheeting
     incomeInfoLabel->setObjectName(chartDescriptionName);

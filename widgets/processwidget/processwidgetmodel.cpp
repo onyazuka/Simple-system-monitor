@@ -114,6 +114,19 @@ void ProcessWidgetModel::clearAndSetActivitiesMap(QHash<int, ProcessActivities>&
     emit dataChanged(index(0, 0), index(processActivities.size(), columnCount()));
 }
 
+/*
+    returns -1 on failure
+*/
+int ProcessWidgetModel::getRowByPID(int pid)
+{
+    auto iter = processActivities.find(pid);
+    if(iter == processActivities.end())
+    {
+        return -1;
+    }
+    return std::distance(processActivities.begin(), iter);
+}
+
 //------------------------------------------------/MODEL--------------------------------------
 
 

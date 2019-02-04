@@ -25,7 +25,9 @@ void HddWidget::createWidgets()
     spaceActivitiesSplitter->setFrameShape(QFrame::HLine);
     spaceActivitiesSplitter->setFrameShadow(QFrame::Sunken);
     hddReadChart = new HddChart(1);
+    hddReadChart->setDrawUnderLine(true);
     hddWriteChart = new HddChart(1);
+    hddWriteChart->setDrawUnderLine(true);
 }
 
 void HddWidget::createAndUpdateSpacesWidgets()
@@ -45,6 +47,7 @@ void HddWidget::createAndUpdateSpacesWidgets()
         newLabeledPieChart->getPieChart()->addValue(tr("Free"), hddFree.first, hddFree.second, QBrush(hddAvailColor), true);
         Translator::SizedValue hddBusy = Translator::fitBytesToNumber(device.second.totalSpace - device.second.freeSpace, dataPrecision);
         newLabeledPieChart->getPieChart()->addValue(tr("Busy"), hddBusy.first, hddBusy.second, QBrush(hddBusyColor));
+        newLabeledPieChart->getPieChart()->setPen(QPen(QColor(0,0,0,128)));
         devicePieCharts.push_back(newLabeledPieChart);
     }
 }

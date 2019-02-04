@@ -14,7 +14,9 @@ void MemoryWidget::createWidgets()
     freeMemoryInfoLabel = new QLabel;
     freeSwapInfoLabel = new QLabel;
     memoryUsageChart = new MemoryChart(1);
+    memoryUsageChart->setDrawUnderLine(true);
     swapUsageChart = new MemoryChart(1);
+    swapUsageChart->setDrawUnderLine(true);
 
     // setting object names for stylesheeting
     freeMemoryInfoLabel->setObjectName(chartDescriptionName);

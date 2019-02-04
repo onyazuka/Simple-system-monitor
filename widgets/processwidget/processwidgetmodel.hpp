@@ -21,6 +21,7 @@ public:
     const QHash<int, ProcessActivities> getProcessActivities() const { return processActivities; }
     void updateData(int key, const ProcessActivities& activities);
     void clearAndSetActivitiesMap(QHash<int, ProcessActivities>&& activities);
+    int getRowByPID(int pid);
 
     inline int getDataPrecision() const { return dataPrecision; }
     inline void setDataPrecision(int _dataPrecision) { dataPrecision = _dataPrecision; }
@@ -45,3 +46,4 @@ public:
 protected:
     bool lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const;
 };
+

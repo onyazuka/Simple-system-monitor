@@ -1,5 +1,20 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
 	<file alias="ru_translation">translation.qm</file>
+	<file>icons/icon.png</file>
+	<file>icons/cpu.png</file>
+	<file>icons/hdd.png</file>
+	<file>icons/net.png</file>
+	<file>icons/proc.png</file>
+	<file>icons/ram.png</file>
+	<file>icons/settings.png</file>
+	<file>icons/total.png</file>
+	<file>icons/cpuinv.png</file>
+	<file>icons/hddinv.png</file>
+	<file>icons/netinv.png</file>
+	<file>icons/procinv.png</file>
+	<file>icons/raminv.png</file>
+	<file>icons/settingsinv.png</file>
+	<file>icons/totalinv.png</file>
 </qresource>
 </RCC>

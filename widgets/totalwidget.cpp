@@ -18,6 +18,7 @@ void TotalWidget::createWidgets()
     memoryAvailPieChart =   new LabeledPiechart(LabeledPiechart::Direction::Right);
     memoryAvailPieChart->getPieChart()->setFixedSize(100,100);
     memoryAvailPieChart->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    memoryAvailPieChart->getPieChart()->setPen(QPen(QColor(0,0,0,128)));
 
     swapLabel =             new QLabel(tr("Swap"));
     swapTotalLabel =        new QLabel(tr("Total: "));
@@ -25,6 +26,7 @@ void TotalWidget::createWidgets()
     swapAvailPieChart =     new LabeledPiechart(LabeledPiechart::Direction::Right);
     swapAvailPieChart->getPieChart()->setFixedSize(100,100);
     swapAvailPieChart->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    swapAvailPieChart->getPieChart()->setPen(QPen(QColor(0,0,0,128)));
 
     cpuLabel =              new QLabel(tr("CPU"));
     cpuTotalLabel =         new QLabel(tr("Total: "));
@@ -118,9 +120,9 @@ void TotalWidget::createLayout()
     for(int i = 0; i < coreCount; ++i)
     {
         QVBoxLayout* coresSubSublayout = new QVBoxLayout;
-        coresSubSublayout->addWidget(coreLabels[i].first, 1);
+        coresSubSublayout->addWidget(coreLabels[i].first, 1, Qt::AlignCenter);
         coresSubSublayout->addWidget(corePBs[i], 5);
-        coresSubSublayout->addWidget(coreLabels[i].second, 1);
+        coresSubSublayout->addWidget(coreLabels[i].second, 1, Qt::AlignCenter);
         coresSublayout->addLayout(coresSubSublayout, Qt::AlignCenter);
         if((i % 8 == 7) && (i != coreCount - 1))
         {
@@ -161,6 +163,29 @@ void TotalWidget::updateCpuLabels()
         float usage = infoManager->getLoad(i + 1);
         coreLabels[i].second->setText(QString::number(usage, 'd', dataPrecision) + "%");
         corePBs[i]->setValue(std::round(usage));
+        updatePBStyle(corePBs[i]);
+    }
+}
+
+void TotalWidget::updatePBStyle(QProgressBar* progressBar)
+{
+    if(progressBar->value() < 33)
+    {
+        progressBar->setStyleSheet("QProgressBar::chunk {background: qlineargradient(x1:0, y1:0, x2:1, y2:1,"
+                                   "stop:0 rgb(90,220,90), stop:1 rgb(70,200,70));"
+                                   "margin: 2px 1px 1px 2px;}");
+    }
+    else if(progressBar->value() < 66)
+    {
+        progressBar->setStyleSheet("QProgressBar::chunk {background: qlineargradient(x1:0, y1:0, x2:1, y2:1,"
+                                   "stop:0 rgb(255,255,0), stop:1 rgb(240,230,140));"
+                                   "margin: 2px 1px 1px 2px;}");
+    }
+    else
+    {
+        progressBar->setStyleSheet("QProgressBar::chunk {background: qlineargradient(x1:0, y1:0, x2:1, y2:1,"
+                                   "stop:0 rgb(255,0,0), stop:1 rgb(220,20,60));"
+                                   "margin: 2px 1px 1px 2px;}");
     }
 }
 

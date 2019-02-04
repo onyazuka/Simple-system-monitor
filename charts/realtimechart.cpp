@@ -3,7 +3,7 @@
 RealtimeChart::RealtimeChart(int chartsCount, QWidget* parent)
     : QWidget{parent} , maxValues{600}, forceMin{0}, forceMinEnabled{false},
       forceMax{0.01}, forceMaxEnabled{false}, leftToRight{false},
-      xMargins{QSize(0,0)}, yMargins{QSize(0,0)}, updateTime(500),
+      xMargins{QSize(0,0)}, yMargins{QSize(0,0)}, updateTime(500), drawUnderLine{false},
       forceMaxEstablishedTurnsBack{0}, forceMinEstablishedTurnsBack{0}, pointScale{0},
       sectionWidth{0}, updateTimer{nullptr}
 {
@@ -17,7 +17,7 @@ RealtimeChart::RealtimeChart(int chartsCount, QWidget* parent)
     {
         charts[i] = Chart();
         chartPens[i] = QPen(defaultPalette[rand() % defaultPalette.size()]);
-        chartBrushes[i] = QBrush();
+        chartBrushes[i] = QBrush(QColor(chartPens[i].color().red(), chartPens[i].color().green(), chartPens[i].color().blue(), 128));
     }
     chartLabel = new QLabel;
     update();
@@ -50,6 +50,7 @@ void RealtimeChart::setDefaultPalette(const QVector<QColor>& newPalette)
     for(int i = 0; i < getChartsCount(); ++i)
     {
         chartPens[i] = QPen(newPalette[rand() % newPalette.size()]);
+        chartBrushes[i] = QBrush(QColor(chartPens[i].color().red(), chartPens[i].color().green(), chartPens[i].color().blue(), 64));
     }
 }
 
@@ -166,7 +167,6 @@ void RealtimeChart::paintEvent(QPaintEvent* event)
         }
         QPainterPath path;
         painter.setPen(chartPens[chart]);
-        painter.setBrush(chartBrushes[chart]);
         path.moveTo(getPoint(0, charts[chart][0]));
         for(int point = 1; point < charts[chart].size(); ++point)
         {
@@ -174,6 +174,15 @@ void RealtimeChart::paintEvent(QPaintEvent* event)
             path.lineTo(getPoint(point, charts[chart][point]));
         }
         painter.drawPath(path);
+        if(drawUnderLine)
+        {
+            // closing path and filling it
+            painter.setBrush(chartBrushes[chart]);
+            path.lineTo(getPoint(charts[chart].size() - 1, 0));
+            path.lineTo(getPoint(0, 0));
+            path.lineTo(getPoint(0, charts[chart][0]));
+            painter.fillPath(path, chartBrushes[chart]);
+        }
     }
     QWidget::paintEvent(event);
 }

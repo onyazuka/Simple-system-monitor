@@ -7,6 +7,23 @@
 #include "charts/unittest.hpp"
 #include "systemmonitorunittests.hpp"
 
+const QString GlobalStylesheet = QString(
+                                 "QProgressBar {text-align: center;}"
+                                 "*{font-size: 12px; font-family: Loma, serif;}"
+                                 "QLabel#%1 {font-size: 13px; font-weight: bold; font-family: Ebrima, sans-serif;}"
+                                 "QLabel#%2 {font-size: 12px; font-weight: bold; font-family: Ebrima, sans-serif; }"
+                                 "QLabel#%3 {font-size: 12px; font-family: Loma, serif; }"
+                                 "QLabel#%4 {font-size: 12px; font-family: Euphemia, serif; }"
+                                 "QTabBar::tab { width: 50px; }"
+                                 "QTabBar::tab:selected { background-color: black; }"
+                                 "QTabBar::tab:hover { background-color: #aaa; }"
+                                 "QTableView::item:hover { background-color: #aaa; }"
+                                 "QComboBox:hover { background-color: #aaa; }"
+                                 "QListWidget::item:hover { background-color: #aaa; }"
+                                  "QPushButton:hover { background-color: #aaa; }"
+                                         ).arg(titleLabelsName, chartDescriptionName, infoLabelsName, propertyLabelsName);
+
+
 int main(int argc, char *argv[])
 {
     srand(time(0));
@@ -46,6 +63,7 @@ int main(int argc, char *argv[])
             app.removeTranslator(&translator);
         }
         app.setStyleSheet(GlobalStylesheet);
+        app.setWindowIcon(QIcon(":/icons/icon.png"));
         SystemMonitor sysmon;
         sysmon.show();
         exitCode = app.exec();

@@ -53,6 +53,8 @@ public:
     inline void setXMargins(const QSize& x) {xMargins = x;}
     inline QSize getYMargins() const {return yMargins;}
     inline void setYMargins(const QSize& y) {yMargins = y;}
+    inline bool getDrawUnderLine() const { return drawUnderLine; }
+    inline void setDrawUnderLine(bool draw) {drawUnderLine = draw;}
 
     inline QPen getChartPen(int index) const {return chartPens[index];}
     inline void setChartPen(int index, const QPen& pen) {chartPens[index] = pen;}
@@ -103,6 +105,7 @@ private:
     QPen backgroundPen;
     QBrush backgroundBrush;
     int updateTime;
+    bool drawUnderLine;
 
     //those 2 values used when force max or min are not set - for counting new max and min
         // when this max or min is gone

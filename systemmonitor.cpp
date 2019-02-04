@@ -1,7 +1,23 @@
 #include "systemmonitor.hpp"
 
+const SystemMonitor::WidgetsIcons SystemMonitor::widgetsIcons{":/icons/total.png",
+                                                            ":/icons/cpu.png",
+                                                            ":/icons/ram.png",
+                                                            ":/icons/net.png",
+                                                            ":/icons/hdd.png",
+                                                            ":/icons/proc.png",
+                                                            ":/icons/settings.png"};
+
+const SystemMonitor::WidgetsIcons SystemMonitor::widgetsReversedIcons{":/icons/totalinv.png",
+                                                                    ":/icons/cpuinv.png",
+                                                                    ":/icons/raminv.png",
+                                                                    ":/icons/netinv.png",
+                                                                    ":/icons/hddinv.png",
+                                                                    ":/icons/procinv.png",
+                                                                    ":/icons/settingsinv.png"};
+
 SystemMonitor::SystemMonitor(QWidget *parent)
-    : QWidget{parent}, infoManager{nullptr}, appSettings{DefaultSettings}
+    : QWidget{parent}, infoManager{nullptr}, appSettings{DefaultSettings}, lastActiveTab{0}
 {
     loadQSettings();
     createInfoManager(appSettings.enableCpu, appSettings.enableMem, appSettings.enableNet, appSettings.enableHdd, appSettings.enableProc);
@@ -142,6 +158,16 @@ void SystemMonitor::widgetsStarterStopper(int)
     }
 }
 
+/*
+    Changes icon of active
+*/
+ void SystemMonitor::changeTabIcon(int index)
+ {
+    tabWidget->setTabIcon(lastActiveTab, QIcon(widgetsIcons[lastActiveTab]));
+    tabWidget->setTabIcon(index, QIcon(widgetsReversedIcons[index]));
+    lastActiveTab = index;
+ }
+
 void SystemMonitor::createInfoManager(bool initCpu, bool initMem, bool initNet, bool initHdd, bool initProc)
 {
 
@@ -205,40 +231,48 @@ void SystemMonitor::createInfoManager(bool initCpu, bool initMem, bool initNet, 
 void SystemMonitor::createWidgets()
 {
     tabWidget = new QTabWidget;
+    tabWidget->setIconSize(QSize(50,30));
     // total widget is created anyways
     totalWidget = new TotalWidget(infoManager);
-    tabWidget->addTab(totalWidget, tr("Total"));
+    tabWidget->addTab(totalWidget, QString());
     if(infoManager->isCpuInfoInitialized())
     {
         cpuWidget = new CPUWidget(infoManager);
-        tabWidget->addTab(cpuWidget, tr("CPU"));
+        tabWidget->addTab(cpuWidget, QString());
     }
     if(infoManager->isMemInfoInitialized())
     {
         memoryWidget = new MemoryWidget(infoManager);
-        tabWidget->addTab(memoryWidget, tr("Memory"));
+        tabWidget->addTab(memoryWidget, QString());
     }
     if(infoManager->isNetInfoInitialized())
     {
         networkWidget = new NetworkWidget(infoManager);
-        tabWidget->addTab(networkWidget, tr("Network"));
+        tabWidget->addTab(networkWidget, QString());
     }
     if(infoManager->isHddInfoInitialized())
     {
         hddWidget = new HddWidget(infoManager);
-        tabWidget->addTab(hddWidget, tr("HDD"));
+        tabWidget->addTab(hddWidget, QString());
     }
     if(infoManager->isProcInfoInitialized())
     {
         procWidget = new ProcessesWidget(infoManager);
-        tabWidget->addTab(procWidget, tr("Processes"));
+        tabWidget->addTab(procWidget, QString());
     }
+    for(int i = 0; i < tabWidget->count(); ++i)
+    {
+         tabWidget->setTabIcon(i, QIcon(widgetsIcons[i]));
+    }
+    // making first tab active
+    tabWidget->setTabIcon(0, QIcon(widgetsReversedIcons[0]));
 }
 
 void SystemMonitor::createSettingsWidget()
 {
     optionsWidget = new OptionsWidget(appSettings);
-    tabWidget->addTab(optionsWidget, tr("Options"));
+    tabWidget->addTab(optionsWidget, QString());
+    tabWidget->setTabIcon(tabWidget->count() - 1, QIcon(widgetsIcons[tabWidget->count() - 1]));
 }
 
 void SystemMonitor::createLayout()
@@ -251,6 +285,7 @@ void SystemMonitor::createLayout()
 void SystemMonitor::createConnections()
 {
     connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(widgetsStarterStopper(int)));
+    connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(changeTabIcon(int)));
     connect(optionsWidget, &OptionsWidget::settingsChanged, this, [this](){applySettings(optionsWidget->getSettings());});
     connect(optionsWidget, SIGNAL(systemSettingsChanged()), this, SLOT(restart()));
 }

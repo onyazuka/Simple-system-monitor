@@ -30,6 +30,7 @@ private:
     void createLayout();
 
     void updateCpuLabels();
+    void updatePBStyle(QProgressBar* progressBar);
     void updateMemLabels();
     void updateNetLabels();
     void updateHddLabels();
