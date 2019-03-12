@@ -4,8 +4,6 @@
 #include <QtWidgets>
 #include <QtGui>
 #include "systemmonitor.hpp"
-#include "charts/unittest.hpp"
-#include "systemmonitorunittests.hpp"
 
 const QString GlobalStylesheet = QString(
                                  "QProgressBar {text-align: center;}"

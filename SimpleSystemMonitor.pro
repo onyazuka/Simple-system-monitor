@@ -2,7 +2,7 @@ QT += gui core widgets testlib
 
 CONFIG += c++11
 CONFIG -= app_bundle
-LIBS += -lgtest -lstdc++fs
+LIBS += -lstdc++fs
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked deprecated (the exact warnings
@@ -23,16 +23,13 @@ SOURCES += main.cpp \
     systemmonitor.cpp \
     widgets/cpuwidget.cpp \
     widgets/emulateablewidget.cpp \
-    core/unittests.cpp \
     widgets/memorywidget.cpp \
     charts/networkchart.cpp \
     charts/percenttimerealtimechart.cpp \
     charts/realtimechart.cpp \
-    charts/unittest.cpp \
     utils.cpp \
     widgets/networkwidget.cpp \
     widgets/optionswidget.cpp \
-    systemmonitorunittests.cpp \
     core/parsers/cpu_parsers.cpp \
     core/parsers/memory_parsers.cpp \
     core/parsers/network_parsers.cpp \
@@ -61,7 +58,6 @@ HEADERS += \
     charts/networkchart.hpp \
     charts/percenttimerealtimechart.hpp \
     charts/realtimechart.hpp \
-    charts/unittest.hpp \
     utils.hpp \
     widgets/networkwidget.hpp \
     widgets/optionswidget.hpp \
@@ -74,7 +70,6 @@ HEADERS += \
     core/parsers/parseerror.hpp \
     core/parsers/parser.hpp \
     infomanager.hpp \
-    systemmonitorunittests.hpp \
     core/hddinfo.hpp \
     core/procinfo.hpp \
     core/parsers/processes_parsers.hpp \

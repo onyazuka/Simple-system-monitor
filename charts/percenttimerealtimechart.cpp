@@ -148,13 +148,13 @@ void PercentTimeRealtimeChart::paintEvent(QPaintEvent* event)
         }
         painter.save();
         painter.setPen(textPen);
-        if(fm.width(label) <= abs(xStep))   // abs because step can be negative(if moving from right to left)
+        if(fm.width(label) <= fabs(xStep))   // abs because step can be negative(if moving from right to left)
         {
             painter.drawText(QRect(x - fm.width(label) / 2, yCoord,
                              fm.width(label), fm.height()),
                              label);
         }
-        else if(fm.width(suffixlessLabel) <= abs(xStep))
+        else if(fm.width(suffixlessLabel) <= fabs(xStep))
         {
             painter.drawText(QRect(x - fm.width(suffixlessLabel) / 2, yCoord,
                              fm.width(suffixlessLabel), fm.height()),

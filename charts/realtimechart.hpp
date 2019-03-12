@@ -2,6 +2,7 @@
 #include <QtCore>
 #include <QtWidgets>
 #include <QtGui>
+#include <memory>
 #include "chartsnamespace.hpp"
 
 class RealtimeChartException
